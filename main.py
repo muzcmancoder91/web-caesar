@@ -1,27 +1,59 @@
-from caesar import rotate_string
 from flask import Flask, request
+from caesar import rotate_string
+import cgi
 
-def buildPage(textarea_content):
-    header = "<h2>Web Caesar</h2>"
+app = Flask(__name__)
+app.config['DEBUG'] = True
 
-    rotation_label = "<label>Rotate by:</label>"
-    rotation = "<input type='number' name='rotation'/>"
-    textarea_label = "<label>Type a message:</label>"
-    textarea = "<textarea name='encryption_request'>" + textarea_content + "</textarea>"
-    submit = "<input type='submit' />"
-    form = "<form method='post'>" + rotation_label + rotation + "<br>" + textarea_label + textarea + "<br>" + submit + "</form>"
+form = """
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            form {{
+                background-color: #eee;
+                padding: 20px;
+                margin: 0 auto;
+                width: 540px;
+                font: 16px sans-serif;
+                border-radius: 10px;
+            }}
+            textarea {{
+                margin: 10px 0;
+                width: 540px;
+                height: 120px;
+            }}
+        </style>
+    </head>
+    <body>
+      <!-- create your form here -->
+      <form method="POST">
+        
+        <label>Rotate by:
+          <input type="text" name="rot" value="0">
+        </label>
+        
+        <textarea name="text">{0}</textarea>
+        
+        <input type="submit" value="Submit Query" />
+      </form>
+    </body>
+</html>
+"""
 
-    page_content = header + form
+@app.route('/')
+def index():
+    return form.format('')
 
-    return page_content
+@app.route('/', methods=["POST"])
+def encrypt():
+    # Store values from request parameters in local variables
+    rot = int(request.form["rot"])
+    text = request.form["text"]
 
+    # Encrypt text and return
+    encrypted_text = cgi.escape(rotate_string(text, rot))
+    return form.format(encrypted_text)
+    
 
-    def post(self):
-        message = self.request.get("encryption_request")
-        rotate_by = int(self.request.get("rotation"))
-        encrypted_message = caesar.encrypt(message, rotate_by)
-        escaped_message = cgi.escape(encrypted_message)
-
-        content = buildPage(escaped_message)
-
-        self.response.write(content)
+app.run()
